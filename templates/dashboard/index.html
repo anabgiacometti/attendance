@@ -1,0 +1,64 @@
+{% extends 'base/base.html' %}
+
+<!-- Titulo -->
+{% block title %} Home {% endblock %}
+
+<!-- Conteudo -->
+
+{% block content %}
+
+<div class="uk-container">
+
+    <div class="uk-card uk-card-default uk-card-body uk-margin-top uk-margin-large-bottom">
+
+        <div class="uk-flex uk-width-1-1">
+            <div style="height:1rem; width:{{count.open_percent}}%; background-color:#f0506e; border-top:#fff solid 2px; 
+        border-bottom:#fff solid 2px; border-left:#fff solid 2px; border-radius:.5rem 0 0 .5rem"></div>
+            <div style="height:1rem; width:{{count.return_percent}}%; background-color:#faa05a; border:#fff solid 2px; "></div>
+            <div style="height:1rem; width:{{count.close_percent}}%; background-color:#32d296; border-top:#fff solid 2px; 
+        border-bottom:#fff solid 2px; border-right:#fff solid 2px; border-radius: 0 .5rem .5rem 0"></div>
+        </div>
+        <div>
+            <label>
+                <span class="uk-text-uppercase" style="color:#f0506e; font-size:small"><span uk-icon="triangle-right"></span>aguardando atendimento ({{count.open}})</span>
+                <span class="uk-text-uppercase" style="color:#faa05a; font-size:small"><span uk-icon="triangle-right"></span>aguardando retorno ({{count.return}})</span>
+                <span class="uk-text-uppercase" style="color:#32d296; font-size:small"><span uk-icon="triangle-right"></span>finalizados ({{count.close}})</span>
+            </label>
+        </div>
+
+        <h1 class="uk-heading-small" style="font-size:1.5rem">Últimos chamados abertos</h1>
+
+        <hr>
+
+        <table class="uk-table uk-table-striped uk-table-small uk-table-hover">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Sistema</th>
+                    <th>Resumo</th>
+                    <th>Data de Abertura</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                <tr style="cursor:pointer" onclick="window.location.href = '/ticket?ticket={{ticket.id}}'">
+                    <td>{{ ticket.client.cnpj if ticket.client.type == 1 else ticket.client.cpf }} - {{ ticket.client.bussiness_name }}</td>
+                    <td>{{ ticket.license.system.name }}</td>
+                    <td>{{ ticket.summary }}</td>
+                    <td>{{ ticket.date.strftime('%d/%m/%Y') }}</td>
+                    <td>{% if ticket.status == 1 %} Aguardando Atendimento {% elif ticket.status == 2 %} Aguardando Retorno {% elif ticket.status == 3 %} Finalizado {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+</div>
+
+
+<script>
+</script>
+{% endblock %}

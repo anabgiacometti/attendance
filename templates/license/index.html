@@ -1,0 +1,71 @@
+{% extends 'base/base.html' %}
+
+<!-- Titulo -->
+{% block title %} Licenças {% endblock %}
+
+<!-- Conteudo -->
+
+{% block content %}
+
+<div class="uk-container">
+
+    <div style="position:relative">
+        <a class="uk-button uk-button-default uk-margin-top" href="{{url_for('UniqueLicense')}}">Novo</a>
+    </div>
+
+    <div class="uk-card uk-card-default uk-card-body uk-margin-top">
+
+        <div class="uk-inline uk-width-1-1">
+            <a class="uk-form-icon uk-form-icon-flip" uk-icon="icon: search" id="search_icon"></a>
+            <input class="uk-input" type="text" id="search" value="{{ search }}" placeholder="{{ 'Pesquise uma licença por cpf, cnpj, sistema ou nome fantasia...' if search == ''}}">
+        </div>
+
+        <table class="uk-table uk-table-striped uk-table-small uk-table-hover">
+            <thead>
+                <tr>
+                    <th>Sistema</th>
+                    <th>CNPJ/CPF</th>
+                    <th>Nome Fantasia</th>
+                    <th>Data de Aquisição</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for license in licenses %}
+                <tr style="cursor:pointer" onclick="window.location.href = '/license?license={{license.id}}'">
+                    <td>{{ license.system.name }}</td>
+                    <td>{{ license.client.cnpj if license.client.type == 1 else license.client.cpf }}</td>
+                    <td>{{ license.client.bussiness_name }}</td>
+                    <td>{{ license.date.strftime('%d/%m/%Y') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="uk-pagination uk-flex-right uk-margin-small-top">
+            {{ pagination.links }}
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function search() {
+        if ($("#search").val() == "") {
+            window.location.href = "/licenses"
+        } else {
+            window.location.href = "/licenses?q=" + $("#search").val()
+        }
+    }
+
+    $("#search").keydown(function(e) {
+        var code = e.keyCode || e.which;
+        if (code == 13) {
+            search()
+        }
+    })
+
+    $("#search_icon").click(function() {
+        search()
+    })
+</script>
+{% endblock %}

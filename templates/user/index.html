@@ -1,0 +1,73 @@
+{% extends 'base/base.html' %}
+
+<!-- Titulo -->
+{% block title %} Usuários {% endblock %}
+
+<!-- Conteudo -->
+
+{% block content %}
+
+<div class="uk-container">
+
+    <div style="position:relative">
+        <a class="uk-button uk-button-default uk-margin-top" href="{{url_for('UniqueUser')}}">Novo</a>
+    </div>
+
+    <div class="uk-card uk-card-default uk-card-body uk-margin-top">
+
+        <div class="uk-inline uk-width-1-1">
+            <a class="uk-form-icon uk-form-icon-flip" uk-icon="icon: search" id="search_icon"></a>
+            <input class="uk-input" type="text" id="search" value="{{ search }}" placeholder="{{ 'Pesquise um usuário por nome ou username...' if search == ''}}">
+        </div>
+
+        <table class="uk-table uk-table-striped uk-table-small uk-table-hover">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Username</th>
+                    <th>E-mail</th>
+                    <th>Perfil</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr style="cursor:pointer" onclick="window.location.href = '/user?user={{user.id}}'">
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ 'Admin' if user.admin else 'Regular' }}</td>
+                    <td>{{ 'Ativo' if user.active else 'Inativo' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="uk-pagination uk-flex-right uk-margin-small-top">
+            {{ pagination.links }}
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function search() {
+        if ($("#search").val() == "") {
+            window.location.href = "/users"
+        } else {
+            window.location.href = "/users?q=" + $("#search").val()
+        }
+    }
+
+    $("#search").keydown(function(e) {
+        var code = e.keyCode || e.which;
+        if (code == 13) {
+            search()
+        }
+    })
+
+    $("#search_icon").click(function() {
+        search()
+    })
+</script>
+{% endblock %}

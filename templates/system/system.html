@@ -1,0 +1,61 @@
+{% extends 'base/base.html' %}
+
+<!-- Titulo -->
+{% block title %} Sistema {% endblock %}
+
+<!-- Conteudo -->
+
+{% block content %}
+
+<!-- Macro -->
+{% from "macro/renderfields.html" import ipt_common, ipt_chk, ipt_textarea %}
+
+<div class="uk-container uk-container-small">
+
+    <div class="uk-text-right">
+        <a class="uk-button uk-button-default uk-margin-top" href="{{url_for('Systems')}}">Voltar</a>
+    </div>
+
+    <div class="uk-card uk-card-default uk-card-body uk-margin-top">
+
+        <form action="{{url_for('UniqueSystem')}}" method="POST" uk-grid novalidate>
+
+            {{form.csrf_token}} {% if form.id.data %} {{form.id}} {% endif %}
+
+            <div class="uk-width-1-2">
+                {{ipt_common(form.name)}}
+            </div>
+
+            <div class="uk-width-1-2">
+                {{ipt_common(form.warranty)}}
+                <span class="uk-text-muted uk-text-small">(em dias)</span>
+            </div>
+
+            <div class="uk-width-1-1 uk-margin-small-top">
+                {{ipt_textarea(form.obs, 3)}}
+            </div>
+
+            <div class="margin uk-width-1-1">
+                <button type="submit" class="uk-button uk-button-primary">Salvar</button> {% if form.id.data != None and form.id.data != "" %}
+                <button type="button" class="uk-button uk-button-danger uk-align-right" id="DeleteItem">Deletar</button> {% endif %}
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script>
+    $("#DeleteItem").click(function() {
+        UIkit.modal.confirm('Realmente deseja excluir este sistema?', {
+            labels: {
+                ok: 'Sim',
+                cancel: 'Não'
+            }
+        }).then(function() {
+            window.location.href = "{{ url_for('DeleteSystem', id=form.id.data if form.id.data != None else 0) }}"
+        })
+    })
+</script>
+
+{% endblock %}

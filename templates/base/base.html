@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>
+        Attendence - {% block title %} {% endblock %}
+    </title>
+
+    {% include 'base/references.html' %}
+
+    <script>
+        $(document).ready(function() {
+            if ("{{message}}" != "" && "{{message}}" != undefined && "{{message}}" != "None") {
+                UIkit.notification({
+                    message: '{{message}}',
+                    status: 'success',
+                    pos: 'bottom-right',
+                    timeout: 5000
+                });
+            }
+
+            $(".mask_value").mask('000.000.000.000.000,00', {
+                reverse: true
+            });
+
+            $(".mask_phone").mask('(00) 00000-0000');
+
+            $(".mask_number").keydown(function(e) {
+                var key = e.charCode || e.keyCode || 0;
+                // allow backspace, tab, delete, enter, arrows, numbers and keypad numbers ONLY
+                // home, end, period, and numpad decimal
+                return (
+                    key == 8 ||
+                    key == 9 ||
+                    key == 13 ||
+                    key == 46 ||
+                    key == 110 ||
+                    key == 190 ||
+                    (key >= 35 && key <= 40) ||
+                    (key >= 48 && key <= 57) ||
+                    (key >= 96 && key <= 105));
+            });
+
+        });
+    </script>
+
+
+</head>
+
+<body class="uk-background-muted" uk-height-viewport="expand: true">
+
+    <!-- Login Nav -->
+    {% if login %} {% include 'base/navbar.html' %}
+
+    <!-- Admin Nav -->
+    {% else %} {% include 'base/navbar_admin.html' %} {% endif %}
+
+    <!-- Conteudo -->
+    {% block content %} {% endblock %}
+
+    <!-- Footer -->
+    {% include 'base/footer.html' %}
+
+</body>
+
+</html>

@@ -1,0 +1,70 @@
+{% extends 'base/base.html' %}
+
+<!-- Titulo -->
+{% block title %} Sistemas {% endblock %}
+
+<!-- Conteudo -->
+
+{% block content %}
+
+<div class="uk-container">
+
+    <div style="position:relative">
+        <a class="uk-button uk-button-default uk-margin-top" href="{{url_for('UniqueSystem')}}">Novo</a>
+    </div>
+
+    <div class="uk-card uk-card-default uk-card-body uk-margin-top">
+
+        <div class="uk-inline uk-width-1-1">
+            <a class="uk-form-icon uk-form-icon-flip" uk-icon="icon: search" id="search_icon"></a>
+            <input class="uk-input" type="text" id="search" value="{{ search }}" placeholder="{{ 'Pesquise um sistema por nome...' if search == ''}}">
+        </div>
+
+        <table class="uk-table uk-table-striped uk-table-small uk-table-hover">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Garantia</th>
+                    <th>Observação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for system in systems %}
+                <tr style="cursor:pointer" onclick="window.location.href = '/system?system={{system.id}}'">
+                    <td>{{ system.name }}</td>
+                    <td>{{ system.warranty }} dias</td>
+                    <td>{% if system.obs and system.obs|length > 50 %} {{ system.obs[:50] }}... {% elif system.obs %} {{ system.obs }} {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="uk-pagination uk-flex-right uk-margin-small-top">
+            {{ pagination.links }}
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function search() {
+        if ($("#search").val() == "") {
+            window.location.href = "/systems"
+        } else {
+            window.location.href = "/systems?q=" + $("#search").val()
+        }
+    }
+
+    $("#search").keydown(function(e) {
+        var code = e.keyCode || e.which;
+        if (code == 13) {
+            search()
+        }
+    })
+
+    $("#search_icon").click(function() {
+        search()
+    })
+</script>
+{% endblock %}

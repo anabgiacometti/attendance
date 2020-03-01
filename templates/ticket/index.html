@@ -1,0 +1,158 @@
+{% extends 'base/base.html' %}
+
+<!-- Titulo -->
+{% block title %} Chamados {% endblock %}
+
+<!-- Conteudo -->
+
+{% block content %}
+
+<div class="uk-container">
+
+    <div style="position:relative">
+        <a class="uk-button uk-button-default uk-margin-top" id="new_ticket">Novo</a>
+    </div>
+
+    <div class="uk-card uk-card-default uk-card-body uk-margin-top">
+
+        <div class="uk-inline uk-width-1-1">
+            <a class="uk-form-icon uk-form-icon-flip" uk-icon="icon: search" id="search_icon"></a>
+            <input class="uk-input" type="text" id="search" value="{{ search }}" placeholder="{{ 'Pesquise um cliente por nome, cpf ou cnpj...' if search == ''}}">
+        </div>
+
+        <table class="uk-table uk-table-striped uk-table-small uk-table-hover">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Sistema</th>
+                    <th>Resumo</th>
+                    <th>Data de Abertura</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                <tr style="cursor:pointer" onclick="window.location.href = '/ticket?ticket={{ticket.id}}'">
+                    <td>{{ ticket.client.cnpj if ticket.client.type == 1 else ticket.client.cpf }} - {{ ticket.client.bussiness_name }}</td>
+                    <td>{{ ticket.license.system.name }}</td>
+                    <td>{{ ticket.summary }}</td>
+                    <td>{{ ticket.date.strftime('%d/%m/%Y') }}</td>
+                    <td>{% if ticket.status == 1 %} Aguardando Atendimento {% elif ticket.status == 2 %} Aguardando Retorno {% elif ticket.status == 3 %} Finalizado {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="uk-pagination uk-flex-right uk-margin-small-top">
+            {{ pagination.links }}
+        </div>
+
+    </div>
+</div>
+
+{% from "macro/renderfields.html" import ipt_select %}
+
+<div id="ticket_client" uk-modal>
+    <div class="uk-modal-dialog">
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+        <form action="{{url_for('Tickets')}}" method="POST" novalidate enctype="multipart/form-data">
+            <div class="uk-modal-body">
+                {{form.csrf_token}}
+                <div class="uk-width-1-1">
+                    <label class="uk-form-label">Cliente</label>
+                    <input class="uk-input {{ 'uk-form-danger' if form.client.errors }}" id="client_tt" type="text" value="{{ client_name }}" placeholder="Selecione um cliente"> {% for error in form.client.errors %}
+                    <p class="uk-margin-remove uk-text-small uk-text-danger">{{error}}</p>
+                    {% endfor %} {{form.client}}
+                </div>
+
+                <div class="uk-width-1-1 uk-margin-top">
+                    {{ipt_select(form.license_id)}}
+                </div>
+            </div>
+            <div class="uk-modal-footer uk-text-right">
+                <button class="uk-button uk-button-default uk-modal-close" type="button">Fechar</button>
+                <button class="uk-button uk-button-primary" type="submit">Abrir Chamado</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function search() {
+        if ($("#search").val() == "") {
+            window.location.href = "/tickets"
+        } else {
+            window.location.href = "/tickets?q=" + $("#search").val()
+        }
+    }
+
+    $("#search").keydown(function(e) {
+        var code = e.keyCode || e.which;
+        if (code == 13) {
+            search()
+        }
+    })
+
+    $("#search_icon").click(function() {
+        search()
+    })
+
+    $("#new_ticket").click(function() {
+        UIkit.modal($('#ticket_client')).show();
+    })
+
+    $(document).ready(function() {
+
+        $("#license_id").val("")
+
+        if ("{{form.client.errors|count}}" != 0) {
+            UIkit.modal($('#ticket_client')).show();
+        }
+
+        var clientes;
+
+        $.get('{{ url_for("GetClients") }}', function(result) {
+
+            clientes = result;
+
+            console.log(clientes)
+
+            var states = new Bloodhound({
+                datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                local: clientes
+            });
+
+            $('#client_tt').typeahead({
+                hint: true,
+                highlight: true,
+                minLength: 0
+            }, {
+                name: 'states',
+                display: 'name',
+                source: states
+            }).on('typeahead:selected', function(evt, item) {
+
+                if (item == null || item == undefined) {
+                    $("#client").val("")
+                } else {
+                    $("#client").val(item.id)
+                    $.get('/get-licenses/' + item.id, function(result) {
+                        $("#license_id").val("")
+                        $("#license_id option").each(function() {
+                            $(this).removeClass('uk-hidden')
+                            if (!result.includes(parseInt($(this).val()))) {
+                                $(this).addClass('uk-hidden')
+                            }
+                        })
+                    })
+                }
+
+            });
+
+
+        })
+    })
+</script>
+{% endblock %}

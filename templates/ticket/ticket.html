@@ -1,0 +1,88 @@
+{% extends 'base/base.html' %}
+
+<!-- Titulo -->
+{% block title %} Chamado {% endblock %}
+
+<!-- Conteudo -->
+
+{% block content %}
+
+<!-- Macro -->
+{% from "macro/renderfields.html" import ipt_common, ipt_chk, ipt_textarea, ipt_select %}
+
+<div class="uk-container uk-container-large">
+
+    <div class="uk-text-right">
+        <a class="uk-button uk-button-default uk-margin-top" href="{{url_for('Tickets')}}">Voltar</a>
+    </div>
+
+    <div uk-grid class="uk-grid-match">
+
+        {% include 'ticket/ticket-data.html' %} {% include 'ticket/ticket-form.html' %}
+
+    </div>
+</div>
+
+
+<script>
+    $("#services_select").change(function() {
+        let html = "";
+        let service_id = $(this).find("option:selected").val()
+        let service_name = $(this).find("option:selected").html()
+        let service_price = $(this).find("option:selected").attr('data-price')
+        let service_value = $(this).find("option:selected").attr('data-value')
+
+        let list_services = $("#services li").length
+
+        let value = $("#total_value").attr("data-price")
+        value = parseFloat(value) + parseFloat(service_value)
+        $("#total_value").attr("data-price", value)
+        $("#total_value").html("R$ " + value.toFixed(2).replace('.', ','))
+
+        html += '<li uk-grid><input id="services-' + list_services + '" name="services-' + list_services + '" type="hidden" value="' + service_id + '">'
+        html += '<label class="uk-width-expand" uk-leader>' + service_name + '</label>'
+        html += '<label>' + service_price
+        html += '<span uk-icon="icon: trash" class="removeservice uk-margin-small-left" style="cursor:pointer" data-id="' + service_id + '"></span></label></li>'
+
+        $(this).find("option:selected").addClass("uk-hidden")
+
+        $(this).val('')
+
+        $("#services").append(html)
+    })
+
+    $(document).delegate(".removeservice", "click", function() {
+        id = $(this).attr('data-id')
+        let option
+
+        $(this).parent().parent().remove();
+        $("#services_select option").each(function() {
+            if ($(this).val() == id) {
+                $(this).removeClass("uk-hidden")
+                option = $(this)
+            }
+        })
+
+        let service_value = option.attr('data-value')
+
+        let value = $("#total_value").attr("data-price")
+        value = parseFloat(value) - parseFloat(service_value)
+        $("#total_value").attr("data-price", value)
+        $("#total_value").html("R$ " + value.toFixed(2).replace('.', ','))
+
+    })
+
+
+    $("input[type='file']").change(function(e) {
+
+        var files = $(this)[0].files;
+        let names = '';
+        for (i = 0; i < files.length; i++) {
+            names += files[i].name + '; '
+        }
+        $(this).parent().parent().parent().find(".upload_text").val(names)
+
+    })
+</script>
+
+{% endblock %}

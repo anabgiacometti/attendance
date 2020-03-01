@@ -1,0 +1,198 @@
+{% extends 'base/base.html' %}
+
+<!-- Titulo -->
+{% block title %} Licença {% endblock %}
+
+<!-- Conteudo -->
+
+{% block content %}
+
+<!-- Macro -->
+{% from "macro/renderfields.html" import ipt_common, ipt_select, ipt_textarea %}
+
+<div class="uk-container uk-container-small">
+
+    <div class="uk-text-right">
+        <a class="uk-button uk-button-default uk-margin-top" href="{{url_for('Licenses')}}">Voltar</a>
+    </div>
+
+    <div class="uk-card uk-card-default uk-card-body uk-margin-top uk-margin-large-bottom">
+
+        <form action="{{url_for('UniqueLicense')}}" method="POST" novalidate enctype="multipart/form-data">
+
+            {{form.csrf_token}} {% if form.id.data %} {{form.id}} {% endif %}
+
+            <ul uk-tab>
+                <li>
+                    <a href="#">
+                        <span>Sistema</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <span>Instalação e Treinamento</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <span>Observações e Anexos</span>
+                    </a>
+                </li>
+            </ul>
+
+            <ul class="uk-switcher uk-margin">
+
+                <li uk-grid>
+                    <div class="uk-width-1-1">
+                        <label class="uk-form-label">Cliente</label>
+                        <input class="uk-input {{ 'uk-form-danger' if form.client.errors }}" id="client_tt" type="text" value="{{ client_name }}" placeholder="Selecione um cliente"> {% for error in form.client.errors %}
+                        <p class="uk-margin-remove uk-text-small uk-text-danger">{{error}}</p>
+                        {% endfor %} {{form.client}}
+                    </div>
+
+                    <div class="uk-width-1-1">
+                        {{ipt_common(form.seller)}}
+                    </div>
+
+                    <div class="uk-width-1-2">
+                        {{ipt_select(form.system)}}
+                    </div>
+
+                    <div class="uk-width-1-2">
+                        {{ipt_common(form.date)}}
+                    </div>
+
+                </li>
+
+                <li uk-grid>
+
+                    <div class="uk-width-1-2">
+                        {{ipt_common(form.serial_number)}}
+                    </div>
+
+                    <div class="uk-width-1-2">
+                        {{ipt_common(form.fabric_number)}}
+                    </div>
+
+                    <div class="uk-width-1-2">
+                        {{ipt_common(form.instalation_tech)}}
+                    </div>
+
+                    <div class="uk-width-1-2">
+                        {{ipt_common(form.training_tech)}}
+                    </div>
+
+                    <div class="uk-width-1-1">
+                        {{ipt_common(form.training_client)}}
+                    </div>
+                </li>
+
+                <li uk-grid>
+                    <div class="uk-width-1-1">
+                        {{ipt_textarea(form.obs, 5)}}
+                    </div>
+
+                    <div class="uk-width-1-1">
+                        <label class="uk-form-label">Anexos</label>
+
+                        <div uk-grid>
+                            <div class="uk-width-expand">
+                                <input class="uk-input uk-form-width-medium uk-width-1-1 upload_text" type="text" placeholder="Anexos" disabled>
+                            </div>
+                            <div class="uk-width-auto">
+                                <div uk-form-custom>
+                                    <input type="file" multiple name="attachments">
+                                    <button class="uk-button uk-button-default upload_button" type="button" tabindex="-1"><span uk-icon="icon: cloud-upload"></span></button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="uk-width-1-1 uk-margin-remove-top">
+                        {% for file in files %} <a class="uk-label" style="color:white" href='/download-license-file/{{file.id}}'> {{file.name}}</a> {%endfor%}
+                    </div>
+
+                </li>
+            </ul>
+
+
+            <div class="margin uk-width-1-1">
+                <button type="submit" class="uk-button uk-button-primary">Salvar</button> {% if form.id.data != None and form.id.data != "" %}
+                <button type="button" class="uk-button uk-button-danger uk-align-right" id="DeleteItem">Deletar</button> {% endif %}
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script>
+    $("#DeleteItem").click(function() {
+        UIkit.modal.confirm('Realmente deseja excluir esta licença?', {
+            labels: {
+                ok: 'Sim',
+                cancel: 'Não'
+            }
+        }).then(function() {
+            window.location.href = "{{ url_for('DeleteLicense', id=form.id.data if form.id.data != None else 0) }}"
+        })
+    })
+
+    $("input[type='file']").change(function(e) {
+
+        var files = $(this)[0].files;
+        let names = '';
+        for (i = 0; i < files.length; i++) {
+            names += files[i].name + '; '
+        }
+        $(this).parent().parent().parent().find(".upload_text").val(names)
+
+    })
+
+    $(document).ready(function() {
+
+        if ("{{ sys_val }}" != "None" && "{{ sys_val }}" != "") {
+            $("#system").val("{{ sys_val }}")
+        }
+
+        var clientes;
+
+        $.get('{{ url_for("GetClients") }}', function(result) {
+            clientes = result;
+
+            console.log(clientes)
+
+            var states = new Bloodhound({
+                datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                local: clientes
+            });
+
+            $('#client_tt').typeahead({
+                hint: true,
+                highlight: true,
+                minLength: 0
+            }, {
+                name: 'states',
+                display: 'name',
+                source: states
+            }).on('typeahead:selected', function(evt, item) {
+
+                if (item == null || item == undefined) {
+                    $("#client").val("")
+                } else {
+                    $("#client").val(item.id)
+                }
+
+            });
+
+
+
+        });
+
+
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,46 @@
+<div class="uk-container-expand">
+
+    <nav class="uk-navbar uk-light" style="background: rgb(15,122,229); background: linear-gradient(90deg, rgba(15,122,229,1) 0%, rgba(105,167,230,1) 100%);">
+
+
+        <div class="uk-navbar-left uk-margin-left">
+
+            <ul class="uk-navbar-nav">
+
+                <li><a class="uk-link-text" href="{{ url_for('Home') }}"><span uk-icon="icon: home" class="uk-margin-small-right"></span> Home</a></li>
+
+                <li><a class="uk-link-text" href="{{ url_for('Clients') }}"><span uk-icon="icon: users" class="uk-margin-small-right"></span> Clientes</a></li>
+
+                <li><a class="uk-link-text" href="{{ url_for('Licenses') }}"><span uk-icon="icon: laptop" class="uk-margin-small-right"></span> Licenças</a></li>
+
+                <li><a class="uk-link-text" href="{{ url_for('Tickets') }}"><span uk-icon="icon: bell" class="uk-margin-small-right"></span> Chamados</a></li>
+
+                {% if admin %}
+                <li>
+                    <a class="uk-link-text"><span uk-icon="icon: cog" class="uk-margin-small-right"></span> Configurações</a>
+                    <div uk-dropdown>
+                        <ul class="uk-nav uk-dropdown-nav">
+                            <li><a class="" href="{{ url_for('Users') }}">Usuários</a></li>
+                            <li><a class="" href="{{ url_for('Systems') }}">Sistemas</a></li>
+                            <li><a class="" href="{{ url_for('Services') }}">Serviços</a></li>
+                        </ul>
+                    </div>
+                </li>
+                {% endif %}
+
+            </ul>
+
+        </div>
+
+        <div class="uk-navbar-right uk-margin-right">
+
+            <ul class="uk-navbar-nav">
+
+                <li><a class="uk-link-text" href="{{ url_for('Logout') }}"><span uk-icon="icon: sign-out" class="uk-margin-small-right"></span> Sair</a></li>
+
+            </ul>
+
+        </div>
+    </nav>
+
+</div>

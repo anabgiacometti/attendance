@@ -1,0 +1,28 @@
+<!-- COMUNS -->
+
+{% macro ipt_common(field, customclass) %} {% if not customclass %} {% set customclass = "" %} {% endif %}
+
+<label class="uk-form-label">{{field.label.text}}</label> {{ field(class_ = "uk-input uk-form-danger " + customclass if field.errors else "uk-input " + customclass, placeholder = field.label.text, required=False)}} {% for error in field.errors %}
+<p class="uk-margin-remove uk-text-small uk-text-danger">{{error}}</p>
+{% endfor %} {% endmacro %}
+
+<!-- CHECKBOX -->
+
+{% macro ipt_chk(field) %}
+
+<label>{{field(class_ = "uk-checkbox") }} {{field.label.text}}</label> {% endmacro %}
+
+<!-- TEXTAREA -->
+
+{% macro ipt_textarea(field, rows) %}
+<label class="uk-form-label">{{field.label.text}}</label> {{ field(class_ = "uk-textarea uk-form-danger" if field.errors else "uk-textarea", placeholder = field.label.text, rows=rows)}} {% for error in field.errors %}
+<p class="uk-margin-remove uk-text-small uk-text-danger">{{error}}</p>
+{% endfor %} {% endmacro %}
+
+<!-- SELECT -->
+
+{% macro ipt_select(field) %}
+
+<label class="uk-form-label">{{field.label.text}}</label> {{ field(class_ = "uk-select uk-form-danger" if field.errors else "uk-select", required=False)}} {% for error in field.errors %}
+<p class="uk-margin-remove uk-text-small uk-text-danger">{{error}}</p>
+{% endfor %} {% endmacro %}

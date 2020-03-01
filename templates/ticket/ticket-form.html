@@ -1,0 +1,190 @@
+<div class="uk-width-2-3">
+    <div class="uk-card uk-card-default uk-card-body uk-margin-top uk-margin-large-bottom">
+
+        <form action="{{url_for('GetTicket', ticket=form.id.data) if form.id.data != 0 and form.id.data != None else url_for('OpenTicket', client=form.client_id.data, system=form.license.data)}}" enctype="multipart/form-data" method="POST" novalidate>
+            {{form.csrf_token}} {% if form.id.data %} {{form.id}}{{form.license}}{{form.client_id}} {% endif %} {{form.id.data}}
+            <ul uk-tab class="uk-margin-remove-top">
+                <li>
+                    <a href="#">
+                        <span>Chamado</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <span>Serviços</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <span>Solução</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <span>Anexos</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <span>Comentários</span>
+                    </a>
+                </li>
+            </ul>
+
+            <ul class="uk-switcher uk-margin">
+
+                <li uk-grid>
+
+                    <div class="uk-width-1-2">
+                        {{ipt_common(form.contact_name)}}
+                    </div>
+
+                    <div class="uk-width-1-2">
+                        {{ipt_select(form.status)}}
+                    </div>
+
+                    <div class="uk-width-1-1">
+                        {{ipt_common(form.summary)}}
+                    </div>
+
+                    <div class="uk-width-1-1">
+                        {{ipt_textarea(form.problem, 5)}}
+                    </div>
+
+                </li>
+
+                <li>
+                    <div class="uk-width-1-1">
+                        <label class="uk-form-label">Serviços</label>
+                        <select class="uk-select" id="services_select">
+                            <option value="">Selecione um serviço</option>
+                            {% for service in services %}
+                                <option value="{{service.id}}" 
+                                data-price="R$ {{ '%.2f'|format(service.price) | replace('.',',') }}"
+                                data-value="{{ service.price }}"
+                                class="{{ 'uk-hidden' if service.id in listserv }}"
+                                >{{service.name}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="uk-width-1-1 uk-margin-small-top">
+                        <ul class="uk-list" id="services">
+                            {% for service in form.services %}
+                            <li uk-grid>
+                                <input id="services-{{service.data.id}}" name="services-{{service.data.id}}" type="hidden" value="{{service.data.id}}">
+                                <label class="uk-width-expand" uk-leader>{{service.data.name}}</label>
+                                <label>R$ {{ '%.2f'|format(service.data.price) | replace('.',',') }} <span uk-icon="icon: trash" class="removeservice uk-margin-small-left" style="cursor:pointer" data-id="{{service.data.id}}"></span></label>
+                            </li> {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="uk-width-1-1">
+                        <div class="uk-grid-small" uk-grid>
+                            <div class="uk-width-expand" uk-leader>Total</div>
+                            <div id="total_value" data-price="{{totalprice}}">R$ {{ '%.2f'|format(totalprice) | replace('.',',') }}</div>
+                        </div>
+                    </div>
+
+                </li>
+
+
+                <li uk-grid>
+
+                    <div class="uk-width-1-1">
+                        {{ipt_common(form.responsable_tech)}}
+                    </div>
+
+                    <div class="uk-width-1-1">
+                        {{ipt_textarea(form.resolution, 5)}}
+                    </div>
+
+                </li>
+
+                <li>
+                    <div class="uk-width-1-1">
+                        <label class="uk-form-label">Anexos</label>
+
+                        <div uk-grid>
+                            <div class="uk-width-expand">
+                                <input class="uk-input uk-form-width-medium uk-width-1-1 upload_text" type="text" placeholder="Anexos" disabled>
+                            </div>
+                            <div class="uk-width-auto">
+                                <div uk-form-custom>
+                                    <input type="file" multiple name="ticket_files">
+                                    <button class="uk-button uk-button-default upload_button" type="button" tabindex="-1">
+                                    <span uk-icon="icon: cloud-upload"></span></button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="uk-width-1-1 uk-margin-remove-top">
+                        {% for file in files %} <a class="uk-label" style="color:white" href='/download-ticket-file/{{file.id}}'> {{file.name}}</a> {%endfor%}
+                    </div>
+
+                </li>
+
+                <li>
+
+                    <div>
+
+                        <dl class="uk-description-list uk-description-list-divider">
+
+                            {% for comment in comments %}
+
+                            <dt>
+                                <div class="uk-flex uk-flex-between">
+                                    <div>{{comment.user.name}}</div>
+                                    <div>{{comment.date.strftime("%d/%m/%Y, %H:%M:%S")}}</div>
+                                </div>
+                            </dt>
+                            <dd>
+                                {% if comment.comment %} {{comment.comment}} {% endif %}
+
+                                <div class="uk-width-1-1 uk-margin-remove-top">
+                                    {% for file in comment.files %} <a class="uk-label" style="color:white" href='/download-comment-file/{{file.id}}'> {{file.name}}</a> {%endfor%}
+                                </div>
+                            </dd>
+
+                            {% endfor %}
+
+                        </dl>
+
+                    </div>
+
+                    <div class="uk-width-1-1">
+                        {{ipt_textarea(form.comment, 3)}}
+                    </div>
+
+                    <div class="uk-width-1-1">
+                        <label class="uk-form-label">Anexos</label>
+
+                        <div uk-grid>
+                            <div class="uk-width-expand">
+                                <input class="uk-input uk-form-width-medium uk-width-1-1 upload_text2" type="text" placeholder="Anexos" disabled>
+                            </div>
+                            <div class="uk-width-auto">
+                                <div uk-form-custom>
+                                    <input type="file" multiple name="commentfile">
+                                    <button class="uk-button uk-button-default upload_button2" type="button" tabindex="-1">
+                                    <span uk-icon="icon: cloud-upload"></span></button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </li>
+
+            </ul>
+
+            <div class="margin uk-width-1-1">
+                <button type="submit" class="uk-button uk-button-primary">Salvar</button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
