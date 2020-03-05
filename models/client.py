@@ -30,6 +30,6 @@ class Client(db.Model):
     deleted = db.Column(db.Boolean)
 
     licenses = db.relationship('License', backref='license')
-    tickets = db.relationship('Ticket', backref='ticket')
+    tickets = db.relationship('Ticket', backref='ticket', lazy='dynamic')
 
     

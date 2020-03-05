@@ -3,6 +3,7 @@ from models.license import License
 
 class Ticket(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    ticket_number = db.Column(db.String(20))
     client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
     license_id = db.Column(db.Integer, db.ForeignKey('license.id'))
     date = db.Column(db.DateTime())

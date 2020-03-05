@@ -4,10 +4,13 @@ from flask import render_template, redirect, url_for, request, abort, session
 from models.client import Client
 from forms.clients import ClientForm
 from flask_paginate import Pagination, get_page_parameter
+from models.user import User
+import string, random
+from flask_mail import Message
 
 @app.route('/clients')
 def Clients():
-    if 'userid' not in session or session['userid'] == None:
+    if 'userid' not in session or session['userid'] == None or 'client' not in session or session['client'] != None:
         return redirect(url_for('Login'))
 
     else:
@@ -38,9 +41,22 @@ def Clients():
 
         return render_template('client/index.html', admin=admin, clients=client_list, pagination=pagination, search=q, message=message)
 
+
+
+def randomString(stringLength=4):
+    letters = string.digits
+    return ''.join(random.choice(letters) for i in range(stringLength))
+
+
+def sendMail(name, username, senha, email):
+    msg = Message("Attendance: Senha de Acesso", recipients=[email])
+    msg.html = render_template('email/password.html', name = name, username = username, senha = senha)
+    mail.send(msg)
+
+
 @app.route('/client', methods=["GET", "POST"])
 def UniqueClient():
-    if 'userid' not in session or session['userid'] == None:
+    if 'userid' not in session or session['userid'] == None or 'client' not in session or session['client'] != None:
         return redirect(url_for('Login'))
     
     else:
@@ -83,9 +99,25 @@ def UniqueClient():
                     
                     else: 
                         new_client.cpf = form.identifier.data
+
+                    random = randomString()
                         
+                    new_user = User(
+                        username = new_client.cpf if new_client.type == 2 else new_client.cnpj,
+                        password = "{}{}".format(new_client.bussiness_name.split()[0], random),
+                        email = new_client.email, 
+                        name = new_client.bussiness_name,
+                        admin = False,
+                        active = True,
+                        deleted = False, 
+                        client = True
+                    )
+
                     db.session.add(new_client)
+                    db.session.add(new_user)
                     db.session.commit()
+
+                    sendMail(new_user.name, new_user.username, new_user.password, new_user.email)
 
                     session['message'] = "Cliente cadastrado!"
 
@@ -145,7 +177,7 @@ def UniqueClient():
 
 @app.route('/delclient/<id>')
 def DeleteClient(id):
-    if 'userid' not in session or session['userid'] == None:
+    if 'userid' not in session or session['userid'] == None or 'client' not in session or session['client'] != None:
         return redirect(url_for('Login'))
     
     else:

@@ -54,10 +54,13 @@
 <body class="uk-background-muted" uk-height-viewport="expand: true">
 
     <!-- Login Nav -->
-    {% if login %} {% include 'base/navbar.html' %}
+    {% if login and not client %} {% include 'base/navbar.html' %}
 
     <!-- Admin Nav -->
-    {% else %} {% include 'base/navbar_admin.html' %} {% endif %}
+    {% elif not client %} {% include 'base/navbar_admin.html' %}
+
+    <!-- Cliente Nav -->
+    {% else %} {% include 'base/navbar_client.html' %} {% endif %}
 
     <!-- Conteudo -->
     {% block content %} {% endblock %}

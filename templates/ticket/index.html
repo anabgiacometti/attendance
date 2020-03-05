@@ -17,27 +17,29 @@
 
         <div class="uk-inline uk-width-1-1">
             <a class="uk-form-icon uk-form-icon-flip" uk-icon="icon: search" id="search_icon"></a>
-            <input class="uk-input" type="text" id="search" value="{{ search }}" placeholder="{{ 'Pesquise um cliente por nome, cpf ou cnpj...' if search == ''}}">
+            <input class="uk-input" type="text" id="search" value="{{ search }}" placeholder="{{ 'Pesquise um cliente por ticket, nome, cpf ou cnpj...' if search == ''}}">
         </div>
 
         <table class="uk-table uk-table-striped uk-table-small uk-table-hover">
             <thead>
                 <tr>
+                    <th>Ticket</th>
                     <th>Cliente</th>
                     <th>Sistema</th>
                     <th>Resumo</th>
                     <th>Data de Abertura</th>
-                    <th>Status</th>
+                    <th class="uk-text-center">Status</th>
                 </tr>
             </thead>
             <tbody>
                 {% for ticket in tickets %}
                 <tr style="cursor:pointer" onclick="window.location.href = '/ticket?ticket={{ticket.id}}'">
+                    <td>{{ticket.ticket_number}}</td>
                     <td>{{ ticket.client.cnpj if ticket.client.type == 1 else ticket.client.cpf }} - {{ ticket.client.bussiness_name }}</td>
                     <td>{{ ticket.license.system.name }}</td>
                     <td>{{ ticket.summary }}</td>
                     <td>{{ ticket.date.strftime('%d/%m/%Y') }}</td>
-                    <td>{% if ticket.status == 1 %} Aguardando Atendimento {% elif ticket.status == 2 %} Aguardando Retorno {% elif ticket.status == 3 %} Finalizado {% endif %}
+                    <td class="uk-text-center">{% if ticket.status == 1 %} <span uk-tooltip="title: Aguardando Atendimento" class="dot" style="background-color:#f0506e"></span> {% elif ticket.status == 2 %} <span uk-tooltip="title: Aguardando Retorno" class="dot" style="background-color:#faa05a"></span>                        {% elif ticket.status == 3 %} <span uk-tooltip="title: Finalizado" class="dot" style="background-color:#32d296"></span> {% endif %}
                     </td>
                 </tr>
                 {% endfor %}

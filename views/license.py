@@ -10,7 +10,7 @@ from io import BytesIO
 
 @app.route('/licenses')
 def Licenses():
-    if 'userid' not in session or session['userid'] == None:
+    if 'userid' not in session or session['userid'] == None or 'client' not in session or session['client'] != None:
         return redirect(url_for('Login'))
 
     else:
@@ -45,7 +45,7 @@ def Licenses():
 
 @app.route('/license', methods=["GET", "POST"])
 def UniqueLicense():
-    if 'userid' not in session or session['userid'] == None:
+    if 'userid' not in session or session['userid'] == None or 'client' not in session or session['client'] != None:
         return redirect(url_for('Login'))
     
     else:
@@ -90,14 +90,15 @@ def UniqueLicense():
                     db.session.commit()
 
                     for file in form.attachments.data:
-                        newFile = LicenseFiles(
-                            name = file.filename, 
-                            data = file.read(), 
-                            license_id = new_license.id, 
-                            deleted = False
-                        )
-                        db.session.add(newFile)
-                        db.session.commit()                        
+                        if file.filename:
+                            newFile = LicenseFiles(
+                                name = file.filename, 
+                                data = file.read(), 
+                                license_id = new_license.id, 
+                                deleted = False
+                            )
+                            db.session.add(newFile)
+                            db.session.commit()                        
                         
                     session['message'] = "Licença cadastrada!"
 
@@ -127,13 +128,14 @@ def UniqueLicense():
                 license_db.serial_number = form.serial_number.data                
                 
                 for file in form.attachments.data:
-                    newFile = LicenseFiles(
-                        name = file.filename, 
-                        data = file.read(), 
-                        license_id = license_db.id, 
-                        deleted = False
-                    )
-                    db.session.add(newFile)
+                    if file.filename:
+                        newFile = LicenseFiles(
+                            name = file.filename, 
+                            data = file.read(), 
+                            license_id = license_db.id, 
+                            deleted = False
+                        )
+                        db.session.add(newFile)
                         
                 db.session.commit()
 
@@ -180,7 +182,7 @@ def GetClients():
 
 @app.route('/dellicense/<id>')
 def DeleteLicense(id):
-    if 'userid' not in session or session['userid'] == None:
+    if 'userid' not in session or session['userid'] == None or 'client' not in session or session['client'] != None:
         return redirect(url_for('Login'))
     
     else:

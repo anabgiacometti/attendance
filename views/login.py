@@ -31,6 +31,7 @@ def Login():
             session['username'] = user.username
             session['userid'] = user.id
             session['admin'] = user.admin
+            session['client'] = user.client_id
             return redirect(url_for('Home'))
 
     return render_template('login/index.html', form=form, message_pass=message, login=True)
@@ -61,7 +62,11 @@ def RecoverPass(username):
         session['message'] = "Username não encontrado."
 
     else:
-        user.password = "{}{}".format(user.username, random)
+        if user.client:
+            name = user.name
+        else:
+            name = user.username
+        user.password = "{}{}".format(name, random)
         db.session.commit()
         sendMail(user.name, user.username, user.password, user.email)
         session['message'] = "Uma nova senha foi encaminhada à seu e-mail."

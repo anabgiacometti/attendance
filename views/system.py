@@ -6,7 +6,7 @@ from flask_paginate import Pagination, get_page_parameter
 
 @app.route('/systems')
 def Systems():
-    if 'userid' not in session or session['userid'] == None or 'admin' not in session or session['admin'] == False or session['admin'] == None:
+    if 'userid' not in session or session['userid'] == None or 'admin' not in session or session['admin'] == False or session['admin'] == None or 'client' not in session or session['client'] != None:
         return redirect(url_for('Login'))
 
     else:
@@ -39,7 +39,7 @@ def Systems():
 
 @app.route('/system', methods=["GET", "POST"])
 def UniqueSystem():
-    if 'userid' not in session or session['userid'] == None or 'admin' not in session or session['admin'] == False or session['admin'] == None:
+    if 'userid' not in session or session['userid'] == None or 'admin' not in session or session['admin'] == False or session['admin'] == None or 'client' not in session or session['client'] != None:
         return redirect(url_for('Login'))
     
     else:
@@ -100,7 +100,7 @@ def UniqueSystem():
 
 @app.route('/delsystem/<id>')
 def DeleteSystem(id):
-    if 'userid' not in session or session['userid'] == None or 'admin' not in session or session['admin'] == False or session['admin'] == None:
+    if 'userid' not in session or session['userid'] == None or 'admin' not in session or session['admin'] == False or session['admin'] == None or 'client' not in session or session['client'] != None:
         return redirect(url_for('Login'))
     
     else:

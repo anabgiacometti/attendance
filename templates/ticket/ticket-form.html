@@ -2,7 +2,7 @@
     <div class="uk-card uk-card-default uk-card-body uk-margin-top uk-margin-large-bottom">
 
         <form action="{{url_for('GetTicket', ticket=form.id.data) if form.id.data != 0 and form.id.data != None else url_for('OpenTicket', client=form.client_id.data, system=form.license.data)}}" enctype="multipart/form-data" method="POST" novalidate>
-            {{form.csrf_token}} {% if form.id.data %} {{form.id}}{{form.license}}{{form.client_id}} {% endif %} {{form.id.data}}
+            {{form.csrf_token}} {% if form.id.data %} {{form.id}}{{form.license}}{{form.client_id}} {% endif %}
             <ul uk-tab class="uk-margin-remove-top">
                 <li>
                     <a href="#">
@@ -163,12 +163,12 @@
 
                         <div uk-grid>
                             <div class="uk-width-expand">
-                                <input class="uk-input uk-form-width-medium uk-width-1-1 upload_text2" type="text" placeholder="Anexos" disabled>
+                                <input class="uk-input uk-form-width-medium uk-width-1-1 upload_text" type="text" placeholder="Anexos" disabled>
                             </div>
                             <div class="uk-width-auto">
                                 <div uk-form-custom>
                                     <input type="file" multiple name="commentfile">
-                                    <button class="uk-button uk-button-default upload_button2" type="button" tabindex="-1">
+                                    <button class="uk-button uk-button-default upload_button" type="button" tabindex="-1">
                                     <span uk-icon="icon: cloud-upload"></span></button>
                                 </div>
                             </div>

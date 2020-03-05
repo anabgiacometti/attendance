@@ -7,14 +7,19 @@ from models.system import System
 from flask import render_template, redirect, url_for, request, abort, session, jsonify, send_file
 from flask_paginate import Pagination, get_page_parameter
 from forms.tickets import TicketClientForm, TicketForm
-import datetime
+import datetime, random, string
 from datetime import datetime, timedelta
 from io import BytesIO
+from models.user import User
+from models.warnings import Warning
 
+def randomString(stringLength=4):
+    letters = string.digits
+    return ''.join(random.choice(letters) for i in range(stringLength))
 
 @app.route('/tickets', methods=['POST', 'GET'])
 def Tickets():
-    if 'userid' not in session or session['userid'] == None:
+    if 'userid' not in session or session['userid'] == None or 'client' not in session or session['client'] != None:
         return redirect(url_for('Login'))
 
     else:
@@ -35,7 +40,7 @@ def Tickets():
                 search = "{}".format(q)
                 tickets = Ticket.query.join("client").filter(Ticket.deleted == False).order_by(Ticket.date.desc())\
                     .filter((Client.bussiness_name.like('%' + q + '%')) | Client.cnpj.like('%' + q + '%') | \
-                        (Client.cpf.like('%' + q + '%')))
+                        (Client.cpf.like('%' + q + '%')) | (Ticket.ticket_number.like('%' + q + '%')) )
             else:
                 tickets = Ticket.query.join("client").filter(Ticket.deleted == False).order_by(Ticket.date.desc())
 
@@ -60,7 +65,7 @@ def Tickets():
 
 @app.route('/ticket/<client>/<system>', methods=['POST', 'GET'])
 def OpenTicket(client, system):
-    if 'userid' not in session or session['userid'] == None:
+    if 'userid' not in session or session['userid'] == None or 'client' not in session or session['client'] != None:
         return redirect(url_for('Login'))
 
     else:
@@ -84,6 +89,23 @@ def OpenTicket(client, system):
         form.license.data = license_selected.system.id
         form.client_id.data = license_selected.client.id
 
+        year = datetime.today().year
+        month = datetime.today().month
+        day = datetime.today().day
+
+        date = "{}{}{}".format(year, month, day)
+
+        random = randomString()
+
+        ticket_number = "{}{}".format(date, random)
+
+        ticket_db = Ticket.query.filter(ticket_number == Ticket.ticket_number).first()
+
+        while ticket_db: 
+            random = randomString()
+            ticket_number = "{}{}".format(date, random)     
+            ticket_db = Ticket.query.filter(ticket_number == Ticket.ticket_number).first()
+
         if request.method == "POST" and form.validate_on_submit():
             new_ticket = Ticket(
                 client_id = form.client_id.data, 
@@ -95,7 +117,8 @@ def OpenTicket(client, system):
                 responsable_tech = form.responsable_tech.data,
                 contact_name = form.contact_name.data,
                 resolution = form.resolution.data,
-                deleted = False
+                deleted = False, 
+                ticket_number = ticket_number
             )
             db.session.add(new_ticket)
             db.session.commit()
@@ -160,7 +183,7 @@ def OpenTicket(client, system):
 
 @app.route('/ticket', methods=['POST', 'GET'])
 def GetTicket():
-    if 'userid' not in session or session['userid'] == None:
+    if 'userid' not in session or session['userid'] == None or 'client' not in session or session['client'] != None:
         return redirect(url_for('Login'))
 
     else:
@@ -169,6 +192,11 @@ def GetTicket():
         ticket_id = request.args.get('ticket')
         ticket = Ticket.query.filter(Ticket.id == ticket_id).first()
         files = ticket.files
+
+        warning = Warning.query.filter(Warning.user_id != session['userid']).filter(Warning.ticket_id == ticket.id).all()
+
+        for w in warning:
+            w.read = True
 
         history = Ticket.query.join('license').filter(Ticket.client_id == ticket.client_id).filter(Ticket.id != ticket_id)\
             .filter(License.system_id == ticket.license.system_id).order_by(Ticket.date.desc()).all()
@@ -181,6 +209,8 @@ def GetTicket():
             totalprice = totalprice + s.price
 
         form = TicketForm(obj=ticket)
+
+        number = ticket.ticket_number
 
         warranty = False
         final_warranty = ticket.license.date + timedelta(ticket.license.system.warranty)
@@ -231,6 +261,14 @@ def GetTicket():
                     date = datetime.now(),
                     comment = form.comment.data
                 )         
+
+                new_warning = Warning(
+                    ticket_id = ticket.id, 
+                    user_id = session['userid'],
+                    read = False
+                )
+
+                db.session.add(new_warning)
                 db.session.add(newcomment)
                 db.session.commit()        
 
@@ -262,13 +300,13 @@ def GetTicket():
             return redirect(url_for('Tickets'))
 
         else:            
-            return render_template('ticket/ticket.html',admin=admin, comments=comments, history=history, form=form, totalprice=totalprice, listserv=list_serv, license=ticket.license, warranty=warranty, files=files, services=services)
+            return render_template('ticket/ticket.html',admin=admin, number=number, comments=comments, history=history, form=form, totalprice=totalprice, listserv=list_serv, license=ticket.license, warranty=warranty, files=files, services=services)
 
 
 
 @app.route('/get-licenses/<id>')
 def GetLicenses(id):
-    if 'userid' not in session or session['userid'] == None:
+    if 'userid' not in session or session['userid'] == None or 'client' not in session or session['client'] != None:
         return redirect(url_for('Login'))
     
     else:
@@ -294,3 +332,93 @@ def DownloadTicketFile(id):
 def DownloadCommentFile(id):
     file = CommentFile.query.filter(CommentFile.id == id).first()
     return send_file(BytesIO(file.data), attachment_filename=file.name, as_attachment=True)
+
+
+
+
+
+
+@app.route('/ticketclient', methods=['POST', 'GET'])
+def TicketClient():
+    if 'userid' not in session or session['userid'] == None:
+        return redirect(url_for('Login'))
+
+    else:
+        ticket_id = request.args.get('ticket')
+        ticket = Ticket.query.filter(Ticket.id == ticket_id).first()
+
+        number = ticket.ticket_number
+
+        if ticket.client_id != session['client']:
+            return redirect(url_for("Home"))
+        
+        warning = Warning.query.filter(Warning.user_id != session['userid']).filter(Warning.ticket_id == ticket.id).all()
+
+        for w in warning:
+            w.read = True
+            db.session.commit()
+
+        files = ticket.files
+
+        list_serv = []
+        totalprice = 0
+
+        for s in ticket.services.all():
+            list_serv.append(s.id)
+            totalprice = totalprice + s.price
+
+        form = TicketForm(obj=ticket)
+
+        services = Service.query.filter(Service.deleted == False).all()
+        comments = ticket.comments
+
+        if request.method == "POST":   
+            newcomment = None
+
+            if(form.comment.data):
+                newcomment = Comment(
+                    ticket_id = ticket.id, 
+                    user_id = session['userid'], 
+                    date = datetime.now(),
+                    comment = form.comment.data
+                )         
+                db.session.add(newcomment)
+                
+                new_warning = Warning(
+                    ticket_id = ticket.id, 
+                    user_id = session['userid'],
+                    read = False
+                )
+
+                db.session.add(new_warning)
+                db.session.commit()        
+
+            
+            for file in form.commentfile.data:
+                if file.filename: 
+                    
+                    if newcomment == None:
+                        newcomment = Comment(
+                            ticket_id = ticket.id, 
+                            user_id = session['userid'], 
+                            date = datetime.now(),
+                        )
+                        db.session.add(newcomment)
+                        db.session.commit()  
+                    
+                    newFile = CommentFile(
+                        name = file.filename, 
+                        data = file.read(), 
+                        comment_id = newcomment.id, 
+                        deleted = False
+                    )
+                    db.session.add(newFile)
+                
+            db.session.commit()                        
+                                   
+            session['message'] = "Comentário incluso com sucesso!"
+            return redirect(url_for('ClientDashboard'))
+
+        else:            
+            return render_template('ticket/ticket-client.html', number=number, comments=comments, form=form, totalprice=totalprice, listserv=list_serv, license=ticket.license, files=files, services=services)
+

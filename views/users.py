@@ -20,7 +20,7 @@ def sendMail(name, username, senha, email):
 
 @app.route('/users')
 def Users():
-    if 'userid' not in session or session['userid'] == None or 'admin' not in session or session['admin'] == False or session['admin'] == None:
+    if 'userid' not in session or session['userid'] == None or 'admin' not in session or session['admin'] == False or session['admin'] == None or 'client' not in session or session['client'] != None:
         return redirect(url_for('Login'))
 
     else:
@@ -53,7 +53,7 @@ def Users():
 
 @app.route('/user', methods=["GET", "POST"])
 def UniqueUser():
-    if 'userid' not in session or session['userid'] == None or 'admin' not in session or session['admin'] == False or session['admin'] == None:
+    if 'userid' not in session or session['userid'] == None or 'admin' not in session or session['admin'] == False or session['admin'] == None or 'client' not in session or session['client'] != None:
         return redirect(url_for('Login'))
     
     else:
@@ -138,7 +138,7 @@ def UniqueUser():
 
 @app.route('/deluser/<id>')
 def DeleteUser(id):
-    if 'userid' not in session or session['userid'] == None or 'admin' not in session or session['admin'] == False or session['admin'] == None:
+    if 'userid' not in session or session['userid'] == None or 'admin' not in session or session['admin'] == False or session['admin'] == None or 'client' not in session or session['client'] != None:
         return redirect(url_for('Login'))
     
     else:

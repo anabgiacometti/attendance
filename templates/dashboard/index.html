@@ -26,28 +26,48 @@
             </label>
         </div>
 
-        <h1 class="uk-heading-small" style="font-size:1.5rem">Últimos chamados abertos</h1>
+        {% if client %}
+        <div uk-grid class="uk-margin-top uk-flex-between">
+            <div class="uk-width-1-3">
+                <h1 class="uk-heading-small" style="font-size:1.5rem">Seus chamados</h1>
+            </div>
+            <div class="uk-width-1-3">
+                <div class="uk-inline uk-width-1-1">
+                    <a class="uk-form-icon uk-form-icon-flip" href="#" uk-icon="icon: search" id="search_icon"></a>
+                    <input class="uk-input" type="text" id="search" placeholder="Pesquise por número de chamado" value="{{q if q else ''}}">
+                </div>
+            </div>
 
+        </div>
+        {% else %}
+        <h1 class="uk-heading-small" style="font-size:1.5rem">Últimos chamados abertos</h1>
+        {% endif %}
         <hr>
 
         <table class="uk-table uk-table-striped uk-table-small uk-table-hover">
             <thead>
                 <tr>
+                    <th>Ticket</th>
                     <th>Cliente</th>
                     <th>Sistema</th>
                     <th>Resumo</th>
                     <th>Data de Abertura</th>
-                    <th>Status</th>
+                    <th class="uk-text-center">Status</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
                 {% for ticket in tickets %}
-                <tr style="cursor:pointer" onclick="window.location.href = '/ticket?ticket={{ticket.id}}'">
+                <tr style="cursor:pointer" onclick="window.location.href = '{% if not client %}/ticket?ticket={{ticket.id}}{% else %}/ticketclient?ticket={{ticket.id}}{%endif%}'">
+                    <td>{{ticket.ticket_number}}</td>
                     <td>{{ ticket.client.cnpj if ticket.client.type == 1 else ticket.client.cpf }} - {{ ticket.client.bussiness_name }}</td>
                     <td>{{ ticket.license.system.name }}</td>
                     <td>{{ ticket.summary }}</td>
                     <td>{{ ticket.date.strftime('%d/%m/%Y') }}</td>
-                    <td>{% if ticket.status == 1 %} Aguardando Atendimento {% elif ticket.status == 2 %} Aguardando Retorno {% elif ticket.status == 3 %} Finalizado {% endif %}
+                    <td class="uk-text-center">{% if ticket.status == 1 %} <span uk-tooltip="title: Aguardando Atendimento" class="dot" style="background-color:#f0506e"></span> {% elif ticket.status == 2 %} <span uk-tooltip="title: Aguardando Retorno" class="dot" style="background-color:#faa05a"></span>                        {% elif ticket.status == 3 %} <span uk-tooltip="title: Finalizado" class="dot" style="background-color:#32d296"></span> {% endif %}
+                    </td>
+                    <td>
+                        {% if ticket.id in warnings %} <span class="uk-label">Comentário</span> {% endif %}
                     </td>
                 </tr>
                 {% endfor %}
@@ -60,5 +80,23 @@
 
 
 <script>
+    function search() {
+        if ($("#search").val() == "") {
+            window.location.href = "/home/client"
+        } else {
+            window.location.href = "/home/client?q=" + $("#search").val()
+        }
+    }
+
+    $("#search").keydown(function(e) {
+        var code = e.keyCode || e.which;
+        if (code == 13) {
+            search()
+        }
+    })
+
+    $("#search_icon").click(function() {
+        search()
+    })
 </script>
 {% endblock %}
