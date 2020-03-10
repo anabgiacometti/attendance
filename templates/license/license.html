@@ -42,7 +42,7 @@
 
             <ul class="uk-switcher uk-margin">
 
-                <li uk-grid>
+                <li uk-grid class="uk-active">
                     <div class="uk-width-1-1">
                         <label class="uk-form-label">Cliente</label>
                         <input class="uk-input {{ 'uk-form-danger' if form.client.errors }}" id="client_tt" type="text" value="{{ client_name }}" placeholder="Selecione um cliente"> {% for error in form.client.errors %}
