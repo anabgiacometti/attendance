@@ -28,6 +28,8 @@ class Client(db.Model):
     
     obs = db.Column(db.Text())
     deleted = db.Column(db.Boolean)
+    
+    resale = db.Column(db.Boolean)
 
     licenses = db.relationship('License', backref='license')
     tickets = db.relationship('Ticket', backref='ticket', lazy='dynamic')

@@ -20,6 +20,7 @@ from views.service import *
 from views.client import *
 from views.license import *
 from views.ticket import *
+from views.resale import * 
 
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)

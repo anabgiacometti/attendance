@@ -18,6 +18,9 @@ class License(db.Model):
     training_client = db.Column(db.String(255))
     obs = db.Column(db.Text())
     deleted = db.Column(db.Boolean())
+    resale = db.Column(db.Boolean())
+    reseller_id = db.Column(db.Integer)
+    reseller_name = db.Column(db.String(100))
 
     client = db.relationship('Client', backref='client')
     files = db.relationship('LicenseFiles', backref='files')

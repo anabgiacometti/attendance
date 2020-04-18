@@ -71,7 +71,7 @@ def UniqueService():
 
             else:
                 service_db = Service.query.filter(Service.id == form.id.data).first()
-                service_duplicated = Service.filter(Service.deleted == False).query.filter((Service.id != form.id.data) & (Service.name == form.name.data)).first()
+                service_duplicated = Service.query.filter(Service.deleted == False).filter((Service.id != form.id.data) & (Service.name == form.name.data)).first()
     
                 if service_duplicated: 
                     form.name.errors.append('Sistema já cadastrado.')

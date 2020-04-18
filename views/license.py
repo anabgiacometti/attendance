@@ -52,6 +52,7 @@ def UniqueLicense():
         admin = session['admin']
         form = LicenseForm()
         client_name = ""
+        reseller_name = ""
 
         systems = System.query.filter_by(deleted=False).all()
         system_list=[("{}".format(i.id), i.name) for i in systems]
@@ -63,6 +64,11 @@ def UniqueLicense():
             if not form.id.data:
                 service_db = License.query.filter(License.deleted == False).filter(License.client_id == form.client.data)\
                     .filter(License.system_id == form.system.data).first()
+
+                if form.client.data: 
+                    client = Client.query.filter(Client.id == form.client.data).first()
+                    identifier = client.cpf if client.type == 2 else client.cnpj
+                    client_name = "{} - {}".format(identifier, client.bussiness_name)
                 
                 if service_db: 
                     if form.client.data: 
@@ -70,9 +76,20 @@ def UniqueLicense():
                         identifier = client.cpf if client.type == 2 else client.cnpj
                         client_name = "{} - {}".format(identifier, client.bussiness_name)
                     form.client.errors.append('Já existe uma licença deste sistema para este cliente.')
-                    return render_template('license/license.html',admin=admin, form=form, client_name=client_name)
+                    return render_template('license/license.html',admin=admin, form=form, client_name=client_name, reseller_name=reseller_name, isreseller=isreseller)
+
+                if form.resale.data == "0": 
+                    isreseller = "1"
+                    form.resale.errors.append('Selecione um revendedor.')
+                    return render_template('license/license.html',admin=admin, form=form, client_name=client_name, reseller_name=reseller_name, isreseller=isreseller)
 
                 else:
+
+                    resale = False
+
+                    if form.resale.data != "":
+                        resale = True
+
                     new_license = License(
                         client_id = form.client.data,
                         system_id = form.system.data, 
@@ -84,8 +101,14 @@ def UniqueLicense():
                         deleted = False,
                         seller = form.seller.data, 
                         serial_number = form.serial_number.data, 
-                        fabric_number = form.fabric_number.data
+                        fabric_number = form.fabric_number.data, 
+                        resale = resale, 
                     )
+
+                    if resale:
+                        new_license.reseller_id = form.resale.data
+                        new_license.reseller_name = Client.query.filter(Client.id == form.resale.data).first().bussiness_name
+
                     db.session.add(new_license)
                     db.session.commit()
 
@@ -114,7 +137,7 @@ def UniqueLicense():
                     identifier = license_db.client.cpf if license_db.client.type == 2 else license_db.client.cnpj
                     client_name = "{} - {}".format(identifier, license_db.client.bussiness_name)
                     form.system.choices = system_list
-                    return render_template('license/license.html',admin=admin, form=form, client_name=client_name)
+                    return render_template('license/license.html',admin=admin, form=form, client_name=client_name, reseller_name=reseller_name, sys_val=license.system_id, files=license.files, isreseller=isreseller)
                     
                 license_db.client_id = form.client.data
                 license_db.system_id = form.system.data 
@@ -142,42 +165,64 @@ def UniqueLicense():
                 session['message'] = "Alterações salvas!"
 
                 return redirect(url_for('Licenses'))
-
-
         
         else:
             licenseid = request.args.get('license')
+            isreseller = request.args.get('reseller')
+            if isreseller == "1":
+                form.resale.data = 0
 
             if licenseid:        
                 license = License.query.join(Client).join(System).filter(License.id == licenseid).first()
                 form = LicenseForm(obj=license)
+
                 identifier = license.client.cpf if license.client.type == 2 else license.client.cnpj
-                client_name = "{} - {}".format(identifier, license.client.bussiness_name)
+                client_name = "{} - {}".format(identifier, license.client.bussiness_name)              
+
+                if license.resale:
+                    isreseller = "1"
+                    reseller = Client.query.filter(Client.id == license.reseller_id).first()
+                    reseller_id = reseller.cpf if reseller.type == 2 else reseller.cnpj
+                    reseller_name = "{} - {}".format(reseller_id, reseller.bussiness_name)
+
+                form.resale.data = license.reseller_id
                 form.system.choices = system_list
                 form.client.data = license.client.id
-                return render_template('license/license.html',admin=admin, form=form, client_name=client_name, sys_val=license.system_id, files=license.files)
+
+                return render_template('license/license.html',admin=admin, form=form, client_name=client_name, reseller_name=reseller_name, sys_val=license.system_id, files=license.files, isreseller=isreseller)
             
         if form.client.data: 
             client = Client.query.filter(Client.id == form.client.data).first()
             identifier = client.cpf if client.type == 2 else client.cnpj
             client_name = "{} - {}".format(identifier, client.bussiness_name)
        
-        return render_template('license/license.html',admin=admin, form=form, client_name=client_name)
-
+        return render_template('license/license.html',admin=admin, form=form, client_name=client_name, reseller_name=reseller_name, isreseller=isreseller)
 
 
 @app.route('/getclients')
 def GetClients():
-    clients = Client.query.filter(Client.deleted == False).all()
+    clients = Client.query.filter(Client.resale == False).filter(Client.deleted == False).all()
     clients_list = []
 
     for client in clients:
         identifier = client.cpf if client.type == 2 else client.cnpj
-        cli = { "id": client.id, "name": "{} - {}".format(identifier, client.bussiness_name) }
+        cli = { "id": client.id, "name": "{} - {}".format(identifier, client.bussiness_name), "resale": False }
         clients_list.append(cli)
 
     return jsonify(clients_list)
 
+
+@app.route('/getresellers')
+def GetResellers():
+    resellers = Client.query.filter(Client.resale == True).filter(Client.deleted == False).all()
+    resellers_list = []
+
+    for reseller in resellers:
+        identifier = reseller.cpf if reseller.type == 2 else reseller.cnpj
+        cli = { "id": reseller.id, "name": "{} - {}".format(identifier, reseller.bussiness_name), "resale": True }
+        resellers_list.append(cli)
+
+    return jsonify(resellers_list)
 
 
 @app.route('/dellicense/<id>')

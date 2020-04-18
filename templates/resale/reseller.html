@@ -1,0 +1,234 @@
+{% extends 'base/base.html' %}
+
+<!-- Titulo -->
+{% block title %} Resellere {% endblock %}
+
+<!-- Conteudo -->
+
+{% block content %}
+
+<!-- Macro -->
+{% from "macro/renderfields.html" import ipt_common, ipt_textarea, ipt_select %}
+
+<div class="uk-container uk-container-small">
+
+    <div class="uk-text-right">
+        <a class="uk-button uk-button-default uk-margin-top" href="{{url_for('Resellers')}}">Voltar</a>
+    </div>
+
+    <div class="uk-card uk-card-default uk-card-body uk-margin-top uk-margin-large-bottom">
+
+        <form action="{{url_for('UniqueReseller')}}" method="POST" novalidate>
+
+            {{form.csrf_token}} {% if form.id.data %} {{form.id}} {% endif %}
+
+            <ul uk-tab>
+                <li><a href="#">
+                    {% if form.identifier.errors or form.bussiness_name.errors or form.company_name.errors %}
+                    <span class="uk-text-danger">Empresa</span>
+                    {% else %}
+                    <span>Empresa</span>
+                    {% endif %}
+                </a></li>
+                <li><a href="#"> {% if form.contact.errors or form.phone.errors or form.email.errors %}
+                    <span class="uk-text-danger">Contato</span>
+                    {% else %}
+                    <span>Contato</span>
+                    {% endif %}
+                </a></li>
+                </a>
+                </li>
+                <li><a href="#">Endereço</a></li>
+            </ul>
+
+            <ul class="uk-switcher uk-margin">
+
+                <!-- EMPRESA -->
+                <li>
+
+                    <div uk-grid>
+
+                        <div class="uk-width-1-2">
+                            {{ipt_select(form.type)}}
+                        </div>
+
+                        {% if form.type.data == "2" %}
+
+                        <div class="uk-width-1-2">
+                            <label class="uk-form-label">CPF</label> {{ form.identifier(class_ = "uk-input uk-form-danger mask_number" if form.identifier.errors else "uk-input mask_number", placeholder = "CPF", required=False)}} {% for error in form.identifier.errors
+                            %}
+                            <p class="uk-margin-remove uk-text-small uk-text-danger">{{error}}</p>
+                            {% endfor %}
+                        </div>
+
+                        <div class="uk-width-1-2 cnpj uk-hidden">
+                            {{ipt_common(form.state_number, 'mask_number')}}
+                        </div>
+
+                        {% else %}
+
+                        <div class="uk-width-1-2">
+                            <label class="uk-form-label">CNPJ</label> {{ form.identifier(class_ = "uk-input uk-form-danger mask_number" if form.identifier.errors else "uk-input mask_number", placeholder = "CNPJ", required=False)}} {% for error in form.identifier.errors
+                            %}
+                            <p class="uk-margin-remove uk-text-small uk-text-danger">{{error}}</p>
+                            {% endfor %}
+                        </div>
+
+                        <div class="uk-width-1-2 cnpj">
+                            {{ipt_common(form.state_number, 'mask_number')}}
+                        </div>
+
+                        {% endif %}
+
+                        <div class="uk-width-1-2">
+                            {{ipt_common(form.company_name)}}
+                        </div>
+
+                        <div class="uk-width-1-1">
+                            {{ipt_common(form.bussiness_name)}}
+                        </div>
+
+                    </div>
+
+                </li>
+
+
+                <!-- CONTATO -->
+                <li>
+
+                    <div uk-grid>
+
+                        <div class="uk-width-1-2">
+                            {{ipt_common(form.contact)}}
+                        </div>
+
+                        <div class="uk-width-1-2">
+                            {{ipt_common(form.email)}}
+                        </div>
+
+                        <div class="uk-width-1-2">
+                            {{ipt_common(form.phone, 'mask_phone')}}
+                        </div>
+
+                        <div class="uk-width-1-2">
+                            {{ipt_common(form.phone_2, 'mask_phone')}}
+                        </div>
+
+                    </div>
+
+                </li>
+
+                <!-- ENDEREÇO -->
+
+                <li>
+
+                    <div uk-grid>
+
+                        <div class="uk-width-1-2">
+                            <label class="uk-form-label">CEP</label>
+                            <br>
+                            <div class="uk-inline uk-width-1-1">
+                                <a class="uk-form-icon uk-form-icon-flip" id="searchCEP" href="#" uk-icon="icon: search"></a>
+                                {% if form.zip_code.data %}
+                                <input class="uk-input" type="text" value="{{form.zip_code.data}}" id="zip_code" name="zip_code"> {% else %}
+                                <input class="uk-input" type="text" value="" id="zip_code" name="zip_code"> {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="uk-width-1-2">
+                            {{ipt_common(form.state)}}
+                        </div>
+
+                        <div class="uk-width-1-2">
+                            {{ipt_common(form.city)}}
+                        </div>
+
+                        <div class="uk-width-1-2">
+                            {{ipt_common(form.district)}}
+                        </div>
+
+                        <div class="uk-width-3-4">
+                            {{ipt_common(form.address)}}
+                        </div>
+
+                        <div class="uk-width-1-4">
+                            {{ipt_common(form.number)}}
+                        </div>
+
+                        <div class="uk-width-1-1">
+                            {{ipt_common(form.addicional_info)}}
+                        </div>
+
+                    </div>
+
+                </li>
+
+
+            </ul>
+
+
+            <div class="margin uk-width-1-1">
+                <button type="submit" class="uk-button uk-button-primary">Salvar</button> {% if form.id.data != None and form.id.data != "" %}
+                <button type="button" class="uk-button uk-button-danger uk-align-right" id="DeleteItem">Deletar</button> {% endif %}
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+<script>
+    $("#DeleteItem").click(function() {
+        UIkit.modal.confirm('Realmente deseja excluir este revendedor?', {
+            labels: {
+                ok: 'Sim',
+                cancel: 'Não'
+            }
+        }).then(function() {
+            window.location.href = "{{ url_for('DeleteReseller', id=form.id.data if form.id.data != None else 0) }}"
+        })
+    })
+
+    function searchCEP(cep) {
+        if (cep != "") {
+            $.get("https://viacep.com.br/ws/" + cep + "/json/", function(result) {
+
+                $("#state").val(result.uf)
+                $("#city").val(result.localidade)
+                $("#district").val(result.bairro)
+                $("#address").val(result.logradouro)
+                $("#addicional_info").val(result.complemento)
+            })
+        }
+    }
+
+    $("#type").change(function() {
+
+        if ($("#type").val() == 1) {
+            $(".cnpj").removeClass('uk-hidden')
+            $(".cpf").addClass('uk-hidden')
+            $("#identifier").parent().find('label').html("CNPJ")
+            $("#identifier").attr('placeholder', 'CNPJ')
+        } else {
+            $(".cnpj").addClass('uk-hidden')
+            $(".cpf").removeClass('uk-hidden')
+            $("#identifier").parent().find('label').html("CPF")
+            $("#identifier").attr('placeholder', 'CPF')
+        }
+
+    })
+
+    $("#searchCEP").click(function() {
+
+        searchCEP($("#zip_code").val())
+
+    })
+
+    $("#zip_code").focusout(function() {
+
+        searchCEP($("#zip_code").val())
+
+    })
+</script>
+
+{% endblock %}

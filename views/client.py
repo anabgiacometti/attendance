@@ -1,5 +1,5 @@
 from views.client import *
-from app import app, db
+from app import app, db, mail
 from flask import render_template, redirect, url_for, request, abort, session
 from models.client import Client
 from forms.clients import ClientForm
@@ -20,9 +20,9 @@ def Clients():
         
         if q:
             search = "{}".format(q)
-            clients = Client.query.order_by(Client.bussiness_name).filter(Client.deleted == False).filter((Client.bussiness_name.like('%' + q + '%')) | (Client.cnpj.like('%' + q + '%')) | (Client.cpf.like('%' + q + '%')))
+            clients = Client.query.order_by(Client.bussiness_name).filter(Client.resale == False).filter(Client.deleted == False).filter((Client.bussiness_name.like('%' + q + '%')) | (Client.cnpj.like('%' + q + '%')) | (Client.cpf.like('%' + q + '%')))
         else:
-            clients = Client.query.order_by(Client.bussiness_name).filter(Client.deleted == False)
+            clients = Client.query.order_by(Client.bussiness_name).filter(Client.resale == False).filter(Client.deleted == False)
 
         page = request.args.get(get_page_parameter(), type=int, default=1)
 
@@ -92,6 +92,7 @@ def UniqueClient():
                     new_client.phone_2 = form.phone_2.data
                     new_client.obs = form.obs.data
                     new_client.deleted = False
+                    new_client.resale = False
 
                     if form.type.data == '1':                        
                         new_client.cnpj = form.identifier.data
@@ -100,24 +101,27 @@ def UniqueClient():
                     else: 
                         new_client.cpf = form.identifier.data
 
-                    random = randomString()
-                        
-                    new_user = User(
-                        username = new_client.cpf if new_client.type == 2 else new_client.cnpj,
-                        password = "{}{}".format(new_client.bussiness_name.split()[0], random),
-                        email = new_client.email, 
-                        name = new_client.bussiness_name,
-                        admin = False,
-                        active = True,
-                        deleted = False, 
-                        client = True
-                    )
+                    if(new_client.email != None and new_client.email != ""):
+
+                        random = randomString()
+                            
+                        new_user = User(
+                            username = new_client.cpf if new_client.type == 2 else new_client.cnpj,
+                            password = "{}{}".format(new_client.bussiness_name.split()[0], random),
+                            email = new_client.email, 
+                            name = new_client.bussiness_name,
+                            admin = False,
+                            active = True,
+                            deleted = False, 
+                            client = new_client
+                        )
+
+                        db.session.add(new_user)
+                    
+                        sendMail(new_user.name, new_user.username, new_user.password, new_user.email)
 
                     db.session.add(new_client)
-                    db.session.add(new_user)
                     db.session.commit()
-
-                    sendMail(new_user.name, new_user.username, new_user.password, new_user.email)
 
                     session['message'] = "Cliente cadastrado!"
 

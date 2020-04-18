@@ -17,6 +17,7 @@ class LicenseForm(FlaskForm):
     training_client = StringField('Cliente(s) presente(s) no treinamento')
     attachments = MultipleFileField()
     obs = TextAreaField('Observação')
+    resale = HiddenField('Revendedor')
     
 
 

@@ -23,9 +23,9 @@ class ClientForm(FlaskForm):
     number = StringField('Número')
     addicional_info = StringField('Complemento')
 
-    contact = StringField('Contato', validators=[InputRequired('Preencha este campo.')])
-    phone = StringField('Telefone Principal', validators=[InputRequired('Preencha este campo.')])
-    email = StringField('E-mail', validators=[InputRequired('Preencha este campo.'), Email('E-mail inválido.')])
+    contact = StringField('Contato')
+    phone = StringField('Telefone Principal')
+    email = EmailField('E-mail')
     phone_2 = StringField('Telefone Secundário')
     
     obs = StringField('Observação')

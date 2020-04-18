@@ -8,7 +8,7 @@
 {% block content %}
 
 <!-- Macro -->
-{% from "macro/renderfields.html" import ipt_common, ipt_select, ipt_textarea %}
+{% from "macro/renderfields.html" import ipt_common, ipt_select, ipt_textarea, ipt_chk %}
 
 <div class="uk-container uk-container-small">
 
@@ -43,16 +43,28 @@
             <ul class="uk-switcher uk-margin">
 
                 <li uk-grid class="uk-active">
-                    <div class="uk-width-1-1">
+
+                    {{form.id}}
+
+                    <div class="uk-width-1-1 uk-margin-small-top">
                         <label class="uk-form-label">Cliente</label>
                         <input class="uk-input {{ 'uk-form-danger' if form.client.errors }}" id="client_tt" type="text" value="{{ client_name }}" placeholder="Selecione um cliente"> {% for error in form.client.errors %}
                         <p class="uk-margin-remove uk-text-small uk-text-danger">{{error}}</p>
                         {% endfor %} {{form.client}}
                     </div>
 
+                    {% if isreseller == "1" %}
+                    <div class="uk-width-1-1">
+                        <label class="uk-form-label">Revendedor</label>
+                        <input class="uk-input {{ 'uk-form-danger' if form.resale.errors }}" id="reseller_tt" type="text" value="{{ reseller_name }}" placeholder="Selecione um revendedor"> {% for error in form.resale.errors %}
+                        <p class="uk-margin-remove uk-text-small uk-text-danger">{{error}}</p>
+                        {% endfor %} {{form.resale}}
+                    </div>
+                    {% else %}
                     <div class="uk-width-1-1">
                         {{ipt_common(form.seller)}}
                     </div>
+                    {% endif %}
 
                     <div class="uk-width-1-2">
                         {{ipt_select(form.system)}}
@@ -186,8 +198,40 @@
                 }
 
             });
+        });
 
+        var resellers;
 
+        $.get('{{ url_for("GetResellers") }}', function(result) {
+            resellers = result;
+
+            console.log(resellers)
+
+            var states = new Bloodhound({
+                datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                local: resellers
+            });
+
+            $('#reseller_tt').typeahead({
+                hint: true,
+                highlight: true,
+                minLength: 0
+            }, {
+                name: 'states',
+                display: 'name',
+                source: states
+            }).on('typeahead:selected', function(evt, item) {
+
+                if (item == null || item == undefined) {
+                    $("#resale").val("")
+                } else {
+                    $("#resale").val(item.id)
+                }
+
+                $("#training_tech").val("Revendedor")
+
+            });
 
         });
 
