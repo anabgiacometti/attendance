@@ -3,7 +3,7 @@ Babel==2.8.0
 blinker==1.4
 cffi==1.14.0
 Click==7.0
-cryptography==2.8
+cryptography==3.2
 Flask==1.1.1
 Flask-Babel==1.0.0
 Flask-Mail==0.9.1
